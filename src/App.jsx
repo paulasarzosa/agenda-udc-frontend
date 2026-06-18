@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
+
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Events from './pages/Events';
@@ -13,6 +14,36 @@ import UpcomingEvents from './pages/UpcomingEvents';
 import MyAttendance from './pages/MyAttendance';
 import Profile from './pages/Profile';
 
+function HomeRedirect() {
+  const { user } = useAuth();
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin/events" replace />;
+  }
+
+  return <Navigate to="/events" replace />;
+}
+
+function EventsRedirect() {
+  const { user } = useAuth();
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin/events" replace />;
+  }
+
+  return <Events />;
+}
+
+function UpcomingRedirect() {
+  const { user } = useAuth();
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin/upcoming" replace />;
+  }
+
+  return <UpcomingEvents />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -20,16 +51,26 @@ export default function App() {
         <Navbar />
 
         <Routes>
-          <Route path="/" element={<Navigate to="/events" />} />
+          <Route path="/" element={<HomeRedirect />} />
 
           <Route path="/login" element={<Login />} />
+
           <Route path="/register" element={<Register />} />
 
           <Route
             path="/events"
             element={
               <PrivateRoute>
-                <Events />
+                <EventsRedirect />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/upcoming"
+            element={
+              <PrivateRoute>
+                <UpcomingRedirect />
               </PrivateRoute>
             }
           />
@@ -39,15 +80,6 @@ export default function App() {
             element={
               <PrivateRoute>
                 <MyInscriptions />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/upcoming"
-            element={
-              <PrivateRoute>
-                <UpcomingEvents />
               </PrivateRoute>
             }
           />
@@ -74,7 +106,7 @@ export default function App() {
             path="/admin"
             element={
               <PrivateRoute adminOnly>
-                <Navigate to="/admin/events" />
+                <Navigate to="/admin/events" replace />
               </PrivateRoute>
             }
           />
@@ -105,6 +137,8 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

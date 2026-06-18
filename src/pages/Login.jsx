@@ -12,7 +12,11 @@ export default function Login() {
     try {
       const res = await api.post('/auth/login', data);
       login(res.data.token, res.data.user);
-      navigate('/events');
+      if (res.data.user.role === 'admin') {
+        navigate('/admin/events');
+      } else {
+        navigate('/events');
+      }
     } catch (e) {
       alert(e.response?.data?.message || 'Error al iniciar sesión');
     }
